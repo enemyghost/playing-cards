@@ -9,6 +9,7 @@ import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import com.gmo.big.two.Big2Game;
 import com.gmo.big.two.Big2GameLobby;
@@ -20,6 +21,7 @@ import redis.clients.jedis.ShardedJedisPool;
  * @author tedelen
  */
 public class RedisGameStore implements GameStore {
+    private static final int TTL_SECONDS = (int)TimeUnit.DAYS.toSeconds(1);
     private static final String LOBBY_PREFIX = "lobby:";
     private static final String GAME_PREFIX = "game:";
     private final ShardedJedisPool jedisGameDb;
@@ -47,6 +49,7 @@ public class RedisGameStore implements GameStore {
     public Big2Game updateGame(final Big2Game game) {
         try (final ShardedJedis jedis = jedisGameDb.getResource()) {
             jedis.set(gameKey(game.getId()), OBJECT_MAPPER.writeValueAsString(game));
+            jedis.expire(gameKey(game.getId()), TTL_SECONDS);
         } catch (final IOException e) {
             throw new UncheckedIOException("Could not write game state", e);
         }
@@ -72,6 +75,7 @@ public class RedisGameStore implements GameStore {
     public Big2GameLobby updateGameLobby(final Big2GameLobby lobby) {
         try (final ShardedJedis jedis = jedisGameDb.getResource()) {
             jedis.set(lobbyKey(lobby.getGameId()), OBJECT_MAPPER.writeValueAsString(lobby));
+            jedis.expire(lobbyKey(lobby.getGameId()), TTL_SECONDS);
         } catch (final IOException e) {
             throw new UncheckedIOException("Could not write game lobby state", e);
         }

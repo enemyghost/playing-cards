@@ -36,7 +36,7 @@ import com.gmo.playing.cards.Player;
  */
 @RestController
 @RequestMapping("/v1")
-@CrossOrigin(origins = { "http://14692512.ngrok.io", "http://97d823df.ngrok.io", "http://localhost:3000", "http://localhost:5000" }, allowCredentials = "true")
+@CrossOrigin(origins = { "http://14692512.ngrok.io", "http://97d823df.ngrok.io", "https://7addad9a.ngrok.io", "https://whispering-ocean-60773.herokuapp.com", "https://radiant-mountain-21263.herokuapp.com", "http://localhost:3000", "http://localhost:5000" }, allowCredentials = "true")
 public class Big2GameController {
     private static final AtomicInteger PLAYER_COUNT = new AtomicInteger(0);
 
@@ -126,8 +126,15 @@ public class Big2GameController {
         final Big2GameView.Builder gameView = Big2GameView.newBuilder()
                 .withGameState(GameState.WAITING_FOR_PLAYERS)
                 .withGameViewOwner(player);
-        for (final Player p : gameLobby.getPlayers()) {
-            gameView.addHandView(new HandView(p, 0));
+
+        for (int i = 0; i < gameLobby.getPlayers().size(); i++) {
+            final Player p = gameLobby.getPlayers().get(i);
+            gameView.addHandView(HandView.newBuilder()
+                    .withPlayer(p)
+                    .withPosition(i)
+                    .withCardCount(0)
+                    .withIsDealer(i==0)
+                    .build());
         }
         return gameView.build();
     }

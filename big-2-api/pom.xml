@@ -15,6 +15,7 @@
     <properties>
         <cond.version.jackson>2.9.0</cond.version.jackson>
         <cond.version.spring>5.0.5.RELEASE</cond.version.spring>
+        <full-artifact-name>target/${project.artifactId}-${project.version}.jar</full-artifact-name>
     </properties>
     <dependencies>
         <dependency>
@@ -98,8 +99,33 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>com.heroku.sdk</groupId>
+                <artifactId>heroku-maven-plugin</artifactId>
+                <version>2.0.3</version>
+                <configuration>
+                    <appName>arcane-forest-67352</appName>
+                    <includeTarget>false</includeTarget>
+                    <includes>
+                        <include>${basedir}/${full-artifact-name}</include>
+                    </includes>
+                    <jdkVersion>1.8</jdkVersion>
+                    <processTypes>
+                        <web>
+                            java $JAVA_OPTS -Dserver.port=$PORT -jar ${full-artifact-name}
+                        </web>
+                    </processTypes>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.microsoft.azure</groupId>

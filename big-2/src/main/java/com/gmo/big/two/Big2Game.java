@@ -176,12 +176,23 @@ public class Big2Game {
                 }
             }
         }
-        for (final Player p : players) {
-            if (p.getId().equals(player.getId()) || gameState.equals(GameState.COMPLETED)) {
-                gameView.addHandView(new HandView(p, playerHands.get(p.getId()).getCards()));
-            } else {
-                gameView.addHandView(new HandView(p, playerHands.get(p.getId()).getCards().size()));
+
+        final int playerOffset = players.contains(player) ? players.size() - players.indexOf(player) : 0;
+        for (int i = 0; i < players.size(); i++) {
+            final Player p = players.get(i);
+            final boolean isDealer = i == 0;
+            final boolean isHandForPlayer = p.getId().equals(player.getId());
+            final HandView.Builder handViewBuilder = HandView.newBuilder()
+                    .withPlayer(p)
+                    .withPosition((i + playerOffset) % players.size())
+                    .withIsDealer(isDealer)
+                    .withIsNextToPlay((nextToPlay.get() % players.size()) == i)
+                    .withCardCount(playerHands.get(p.getId()).getCards().size());
+
+            if (isHandForPlayer || gameState.equals(GameState.COMPLETED)) {
+                handViewBuilder.withCards(playerHands.get(p.getId()).getCards());
             }
+            gameView.addHandView(handViewBuilder.build());
         }
         return gameView.build();
     }

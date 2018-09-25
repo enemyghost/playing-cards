@@ -145,6 +145,14 @@ public class Big2HandComparator implements Comparator<Collection<Card>> {
                 CardRank.newBuilder().withCardName(CardName.TWO).withRank(15).build()
         );
 
+        private static final List<CardRank> ILLEGAL_STRAIGHT = ImmutableList.of(
+                CardRank.newBuilder().withCardName(CardName.JACK).withRank(11).build(),
+                CardRank.newBuilder().withCardName(CardName.QUEEN).withRank(12).build(),
+                CardRank.newBuilder().withCardName(CardName.KING).withRank(13).build(),
+                CardRank.newBuilder().withCardName(CardName.ACE).withRank(14).build(),
+                CardRank.newBuilder().withCardName(CardName.TWO).withRank(15).build()
+        );
+
         @Override
         public boolean test(final Collection<Card> cards) {
             if (cards.size() != 5) {
@@ -156,7 +164,10 @@ public class Big2HandComparator implements Comparator<Collection<Card>> {
                     .collect(Collectors.toList());
             if (sortedByRank.equals(SPECIAL_STRAIGHT) || sortedByRank.equals(WHEEL)) {
                 return true;
+            } else if (sortedByRank.equals(ILLEGAL_STRAIGHT)) {
+                return false;
             }
+
             for (int i = 1; i < 5; i++) {
                 if (sortedByRank.get(i - 1).getRank() + 1 != sortedByRank.get(i).getRank()) {
                     return false;

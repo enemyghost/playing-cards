@@ -13,6 +13,7 @@
     <modules>
         <module>big-2</module>
         <module>big-2-api</module>
+        <module>big-2-auth</module>
         <module>playing-cards</module>
     </modules>
 

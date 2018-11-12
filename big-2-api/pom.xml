@@ -25,6 +25,11 @@
         </dependency>
         <dependency>
             <groupId>com.gmo</groupId>
+            <artifactId>big-2-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.gmo</groupId>
             <artifactId>playing-cards</artifactId>
             <version>${project.version}</version>
         </dependency>

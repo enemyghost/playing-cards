@@ -1,7 +1,6 @@
 package com.gmo.big2.api.controller;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,7 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +23,8 @@ import com.gmo.big.two.Big2Game;
 import com.gmo.big.two.Big2GameLobby;
 import com.gmo.big.two.Big2GameView;
 import com.gmo.big.two.Big2GameView.GameState;
+import com.gmo.big.two.auth.entities.User;
+import com.gmo.big2.api.servlet.ServletAuthUtils;
 import com.gmo.big2.api.store.GameStore;
 import com.gmo.big2.api.store.PlayerStore;
 import com.gmo.playing.cards.Card;
@@ -36,22 +36,17 @@ import com.gmo.playing.cards.Player;
  */
 @RestController
 @RequestMapping("/v1")
-@CrossOrigin(origins = { "http://14692512.ngrok.io", "http://97d823df.ngrok.io", "https://7addad9a.ngrok.io", "https://whispering-ocean-60773.herokuapp.com", "https://radiant-mountain-21263.herokuapp.com", "http://localhost:3000", "http://localhost:5000" }, allowCredentials = "true")
+@CrossOrigin(origins = { "https://whispering-ocean-60773.herokuapp.com", "http://localhost:3000" }, allowCredentials = "true")
 public class Big2GameController {
-    private static final AtomicInteger PLAYER_COUNT = new AtomicInteger(0);
-
-    private final PlayerStore playerStore;
     private final GameStore gameStore;
 
-    public Big2GameController(final GameStore gameStore, final PlayerStore playerStore) {
+    public Big2GameController(final GameStore gameStore) {
         this.gameStore = Objects.requireNonNull(gameStore, "Null game store");
-        this.playerStore = Objects.requireNonNull(playerStore, "Null player store");
     }
 
     @PostMapping(value = "/games")
-    public ResponseEntity<UUID> createGame(final HttpServletResponse response,
-                                           @CookieValue(value="big2-player-token", required=false) final String tokenUuid) {
-        final Player player = getPlayer(response, tokenUuid);
+    public ResponseEntity<UUID> createGame(final HttpServletRequest request) {
+        final Player player = getPlayer(request);
         final Big2GameLobby big2GameLobby = gameStore.newLobby();
         big2GameLobby.addPlayer(player);
 
@@ -59,10 +54,9 @@ public class Big2GameController {
     }
 
     @GetMapping(value = "/games/{gameUuid}", produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
-    public ResponseEntity<Big2GameView> getGame(final HttpServletResponse response,
-                                                @CookieValue(value="big2-player-token", required=false) final String tokenUuid,
+    public ResponseEntity<Big2GameView> getGame(final HttpServletRequest request,
                                                 @PathVariable final UUID gameUuid) {
-        final Player player = getPlayer(response, tokenUuid);
+        final Player player = getPlayer(request);
         final Optional<Big2Game> game = gameStore.getGame(gameUuid);
         if (game.isPresent()) {
             return ResponseEntity.ok(game.get().gameViewForPlayer(player));
@@ -78,27 +72,25 @@ public class Big2GameController {
     }
 
     @PostMapping(value = "/games/{gameUuid}/status/START")
-    public ResponseEntity<Big2GameView> startGame(final HttpServletResponse response,
-                                                  @CookieValue(value="big2-player-token", required=false) final String tokenUuid,
+    public ResponseEntity<Big2GameView> startGame(final HttpServletRequest request,
                                                   @PathVariable final UUID gameUuid) {
         if (!gameStore.getGameLobby(gameUuid).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         final Big2Game big2Game = gameStore.startGame(gameUuid);
         gameStore.updateGame(big2Game);
-        return ResponseEntity.ok(big2Game.gameViewForPlayer(getPlayer(response, tokenUuid)));
+        return ResponseEntity.ok(big2Game.gameViewForPlayer(getPlayer(request)));
     }
 
     @PostMapping(value = "/games/{gameUuid}/plays")
-    public ResponseEntity<Big2GameView> play(final HttpServletResponse response,
-                                             @CookieValue(value="big2-player-token", required=false) final String tokenUuid,
+    public ResponseEntity<Big2GameView> play(final HttpServletRequest request,
                                              @PathVariable final UUID gameUuid,
                                              @RequestBody final List<Card> cardsToPlay) {
         final Optional<Big2Game> big2Game = gameStore.getGame(gameUuid);
         if (!big2Game.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        final Player player = getPlayer(response, tokenUuid);
+        final Player player = getPlayer(request);
         try {
             big2Game.get().play(player, cardsToPlay);
         } catch (final Big2Exception exception) {
@@ -109,14 +101,13 @@ public class Big2GameController {
     }
 
     @PostMapping(value = "/games/{gameUuid}/players")
-    public ResponseEntity<Big2GameView> joinGame(final HttpServletResponse response,
-                                                 @CookieValue(value="big2-player-token", required=false) final String tokenUuid,
+    public ResponseEntity<Big2GameView> joinGame(final HttpServletRequest request,
                                                  @PathVariable final UUID gameUuid) {
         final Optional<Big2GameLobby> gameLobby = gameStore.getGameLobby(gameUuid);
         if (!gameLobby.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        final Player player = getPlayer(response, tokenUuid);
+        final Player player = getPlayer(request);
         gameLobby.get().addPlayer(player);
         gameStore.updateGameLobby(gameLobby.get());
         return ResponseEntity.ok(gameLobbyToView(gameLobby.get(), player));
@@ -139,19 +130,11 @@ public class Big2GameController {
         return gameView.build();
     }
 
-    private Player getPlayer(final HttpServletResponse response, final String tokenUuid) {
-        final UUID token;
-        if (tokenUuid == null || !playerStore.getPlayerByTokenId(UUID.fromString(tokenUuid)).isPresent()) {
-            token = playerStore.newPlayer(
-                    Player.newBuilder().withId(UUID.randomUUID())
-                            .withName("player" + PLAYER_COUNT.incrementAndGet())
-                            .build());
-        } else {
-            token = UUID.fromString(tokenUuid);
-        }
-
-        final Player player = playerStore.getPlayerByTokenId(token).orElseThrow(() -> new IllegalStateException("No such player"));
-        response.addCookie(new Cookie("big2-player-token", token.toString()));
-        return player;
+    private Player getPlayer(final HttpServletRequest request) {
+        final User user = ServletAuthUtils.retrieveUser(request).getUser();
+        return Player.newBuilder()
+                .withId(user.getUserId())
+                .withName(user.getDisplayName())
+                .build();
     }
 }

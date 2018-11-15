@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.gmo.big.two.auth.entities.AuthenticationRequest.Builder;
 import com.google.common.base.MoreObjects;
@@ -58,6 +59,7 @@ public class AuthenticationRequest {
         return new Builder();
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class Builder {
         private String userName;
         private String password;

@@ -23,7 +23,7 @@ public class AuthConfig {
 
     @Bean
     public JwtUtils jwtUtils() {
-        return new JwtUtils(Duration.ofMinutes(30L));
+        return new JwtUtils(Duration.ofHours(96));
     }
     
     @Bean

@@ -1,12 +1,15 @@
 package com.gmo.big.two;
 
 import static com.gmo.big.two.Big2HandComparator.isValidBig2Hand;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +48,7 @@ public class Big2Game {
 
     private GameState gameState;
     private AtomicInteger nextToPlay;
+    private UUID nextGameId;
 
     private Big2Game(final Builder builder) {
         id = builder.id;
@@ -54,6 +58,7 @@ public class Big2Game {
         dealer = builder.dealer;
         gameState = builder.gameState;
         nextToPlay = builder.nextToPlay;
+        nextGameId = builder.nextGameId;
     }
 
     public static Big2Game newGame(final UUID uuid, final List<Player> players) {
@@ -98,6 +103,20 @@ public class Big2Game {
 
     public AtomicInteger getNextToPlay() {
         return nextToPlay;
+    }
+
+    public Optional<UUID> getNextGameId() {
+        return Optional.ofNullable(nextGameId);
+    }
+
+    public void setNextGameId(final UUID nextGameId) {
+        checkArgument(!id.equals(nextGameId), "Next game must have a different UUID");
+        this.nextGameId = Objects.requireNonNull(nextGameId, "Null UUID");
+    }
+
+    @JsonIgnore
+    public boolean isCompleted() {
+        return GameState.COMPLETED.equals(gameState);
     }
 
     @JsonIgnore
@@ -165,6 +184,8 @@ public class Big2Game {
     @JsonIgnore
     public synchronized Big2GameView gameViewForPlayer(final Player player) {
         final Big2GameView.Builder gameView = Big2GameView.newBuilder()
+                .withGameId(id)
+                .withNextGameId(nextGameId)
                 .withGameState(gameState)
                 .withNextToPlay(nextToPlay())
                 .withGameViewOwner(player);
@@ -229,6 +250,7 @@ public class Big2Game {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class Builder {
         private UUID id;
+        private UUID nextGameId;
         private List<Player> players;
         private Map<UUID, Hand> playerHands;
         private Stack<Big2Play> plays;
@@ -244,6 +266,11 @@ public class Big2Game {
 
         public Builder withId(UUID id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder withNextGameId(final UUID nextGameid) {
+            this.nextGameId = nextGameid;
             return this;
         }
 

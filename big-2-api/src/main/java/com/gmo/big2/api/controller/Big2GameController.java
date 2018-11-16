@@ -3,10 +3,11 @@ package com.gmo.big2.api.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +27,8 @@ import com.gmo.big.two.Big2GameView.GameState;
 import com.gmo.big.two.auth.entities.User;
 import com.gmo.big2.api.servlet.ServletAuthUtils;
 import com.gmo.big2.api.store.GameStore;
-import com.gmo.big2.api.store.PlayerStore;
 import com.gmo.playing.cards.Card;
+import com.gmo.playing.cards.Hand;
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.Player;
 
@@ -36,7 +37,7 @@ import com.gmo.playing.cards.Player;
  */
 @RestController
 @RequestMapping("/v1")
-@CrossOrigin(origins = { "https://whispering-ocean-60773.herokuapp.com", "http://localhost:3000" }, allowCredentials = "true")
+@CrossOrigin(origins = {"http://c6db7663.ngrok.io", "https://whispering-ocean-60773.herokuapp.com", "http://localhost:3000" }, allowCredentials = "true")
 public class Big2GameController {
     private final GameStore gameStore;
 
@@ -51,6 +52,47 @@ public class Big2GameController {
         big2GameLobby.addPlayer(player);
 
         return ResponseEntity.ok(big2GameLobby.getGameId());
+    }
+
+    @PostMapping(value = "/games/{gameUuid}/newGame", produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
+    public ResponseEntity<UUID> createGame(final HttpServletRequest request,
+                                           @PathVariable final UUID gameUuid) {
+        final Player player = getPlayer(request);
+        final Optional<Big2Game> game = gameStore.getGame(gameUuid);
+        if (!game.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        final Big2Game big2Game = game.get();
+        if (!big2Game.isCompleted()) {
+            return ResponseEntity.badRequest().build();
+        } else if (big2Game.getNextGameId().isPresent()) {
+            return ResponseEntity.badRequest().build();
+        }
+        final Map<Player, Hand> finalHands = big2Game.getFinalHands();
+        final List<Player> players = big2Game.getPlayers();
+        final Player winner = finalHands.entrySet().stream()
+                .filter((e) -> e.getValue().getCards().size() == 0)
+                .map(Entry::getKey)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("aint no winner"));
+        final Big2GameLobby big2GameLobby = gameStore.newLobby();
+        big2Game.setNextGameId(big2GameLobby.getGameId());
+        gameStore.updateGame(big2Game);
+
+        int currentIndex = players.indexOf(winner);
+        while (big2GameLobby.playerCount() < players.size()) {
+            big2GameLobby.addPlayer(players.get(currentIndex));
+            currentIndex++;
+            if (currentIndex >= players.size()) {
+                currentIndex = 0;
+            }
+        }
+        gameStore.updateGameLobby(big2GameLobby);
+        final Big2Game newBig2Game = big2GameLobby.start();
+        gameStore.startGame(newBig2Game.getId());
+        gameStore.updateGame(newBig2Game);
+        return ResponseEntity.ok(newBig2Game.getId());
     }
 
     @GetMapping(value = "/games/{gameUuid}", produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
@@ -115,6 +157,7 @@ public class Big2GameController {
 
     private Big2GameView gameLobbyToView(final Big2GameLobby gameLobby, final Player player) {
         final Big2GameView.Builder gameView = Big2GameView.newBuilder()
+                .withGameId(gameLobby.getGameId())
                 .withGameState(GameState.WAITING_FOR_PLAYERS)
                 .withGameViewOwner(player);
 

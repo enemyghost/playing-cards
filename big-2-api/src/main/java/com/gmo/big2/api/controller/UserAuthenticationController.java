@@ -27,7 +27,7 @@ import com.gmo.big2.api.servlet.ServletAuthUtils;
  */
 @RestController
 @RequestMapping("/v1/auth")
-@CrossOrigin(origins = { "https://whispering-ocean-60773.herokuapp.com", "http://localhost:3000" }, allowCredentials = "true")
+@CrossOrigin(origins = {"http://c6db7663.ngrok.io", "https://whispering-ocean-60773.herokuapp.com", "http://localhost:3000" }, allowCredentials = "true")
 public class UserAuthenticationController {
     private static final Logger LOG = LoggerFactory.getLogger(UserAuthenticationController.class);
 

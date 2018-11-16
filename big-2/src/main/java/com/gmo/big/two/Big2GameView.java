@@ -3,6 +3,7 @@ package com.gmo.big.two;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.Player;
@@ -24,6 +25,8 @@ public class Big2GameView {
     private final List<HandView> handViews;
     private final Player nextToPlay;
     private final List<Big2Play> lastPlays;
+    private final UUID gameId;
+    private final UUID nextGameId;
 
     private Big2GameView(final Builder builder) {
         gameViewOwner = builder.gameViewOwner;
@@ -31,6 +34,8 @@ public class Big2GameView {
         handViews = builder.handViews.build();
         nextToPlay = builder.nextToPlay;
         lastPlays = builder.lastPlays.build();
+        gameId = builder.gameId;
+        nextGameId = builder.nextGameId;
     }
 
     public static Builder newBuilder() {
@@ -57,16 +62,32 @@ public class Big2GameView {
         return gameViewOwner;
     }
 
+    public UUID getGameId() { return gameId; }
+
+    public UUID getNextGameId() { return nextGameId; }
+
     public static final class Builder {
         private Player gameViewOwner;
         private GameState gameState;
         private ImmutableList.Builder<HandView> handViews;
         private Player nextToPlay;
         private ImmutableList.Builder<Big2Play> lastPlays;
+        private UUID gameId;
+        private UUID nextGameId;
 
         private Builder() {
             handViews = ImmutableList.builder();
             lastPlays = ImmutableList.builder();
+        }
+
+        public Builder withGameId(final UUID gameId) {
+            this.gameId = gameId;
+            return this;
+        }
+
+        public Builder withNextGameId(final UUID nextGameId) {
+            this.nextGameId = nextGameId;
+            return this;
         }
 
         public Builder withGameState(final GameState gameState) {
@@ -95,6 +116,7 @@ public class Big2GameView {
         }
 
         public Big2GameView build() {
+            requireNonNull(gameId);
             requireNonNull(gameState, "Null game state");
             requireNonNull(gameViewOwner, "Null owner");
             return new Big2GameView(this);

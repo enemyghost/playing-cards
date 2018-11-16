@@ -100,7 +100,8 @@ public class RedisGameStore implements GameStore {
 
     private Big2Game deserializeGame(final String json) {
         try {
-            return READER_FOR_GAME.readValue(json);
+            Big2Game big2Game = READER_FOR_GAME.readValue(json);
+            return big2Game;
         } catch (final IOException e) {
             throw new UncheckedIOException("Could not deserialize something", e);
         }

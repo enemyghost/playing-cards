@@ -28,6 +28,7 @@ import com.gmo.big2.auth.entities.User;
 import com.gmo.big2.store.game.CompletedGameStore;
 import com.gmo.playing.cards.Card;
 import com.gmo.playing.cards.HandView;
+import com.gmo.playing.cards.LeaderboardEntry;
 import com.gmo.playing.cards.Player;
 
 /**
@@ -43,6 +44,11 @@ public class Big2GameController {
     public Big2GameController(final GameStore gameStore, final CompletedGameStore completedGameStore) {
         this.gameStore = Objects.requireNonNull(gameStore, "Null game store");
         this.completedGameStore = Objects.requireNonNull(completedGameStore, "Null completed game store");
+    }
+
+    @GetMapping(value = "/leaderboard")
+    public ResponseEntity<List<LeaderboardEntry>> leaderboard(final HttpServletRequest request) {
+        return ResponseEntity.ok(completedGameStore.leaderboard());
     }
 
     @PostMapping(value = "/games")

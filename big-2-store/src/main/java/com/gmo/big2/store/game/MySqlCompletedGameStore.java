@@ -1,11 +1,13 @@
 package com.gmo.big2.store.game;
 
+import static com.gmo.big2.store.mysql.schema.jooq.Tables.PLAYER;
 import static com.gmo.big2.store.mysql.schema.jooq.tables.Game.GAME;
 import static com.gmo.big2.store.mysql.schema.jooq.tables.GamePlayer.GAME_PLAYER;
 import static com.gmo.big2.store.mysql.schema.jooq.tables.GamePlayerGroup.GAME_PLAYER_GROUP;
 import static com.gmo.big2.store.mysql.schema.jooq.tables.PlayerGroup.PLAYER_GROUP;
 import static com.gmo.big2.store.mysql.schema.jooq.tables.PlayerScore.PLAYER_SCORE;
 import static com.google.common.base.Preconditions.checkState;
+import static org.jooq.impl.DSL.count;
 
 import java.time.Clock;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.jooq.impl.DSL;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmo.big.two.Big2Game;
+import com.gmo.playing.cards.LeaderboardEntry;
 import com.gmo.playing.cards.Player;
 
 /**
@@ -71,6 +74,27 @@ public class MySqlCompletedGameStore implements CompletedGameStore {
                         .execute();
             });
         });
+    }
+
+    @Override
+    public List<LeaderboardEntry> leaderboard() {
+        return dslContext.select(PLAYER_SCORE.PLAYER_UUID, PLAYER_SCORE.SCORE, PLAYER.DISPLAY_NAME, count(GAME.GAME_UUID).as("games_won"))
+                .from(PLAYER_SCORE)
+                .leftJoin(GAME).on(GAME.WINNER_PLAYER_UUID.eq(PLAYER_SCORE.PLAYER_UUID))
+                .innerJoin(PLAYER).on(PLAYER.PLAYER_UUID.eq(PLAYER_SCORE.PLAYER_UUID))
+                .groupBy(PLAYER_SCORE.PLAYER_UUID, PLAYER_SCORE.SCORE, PLAYER.DISPLAY_NAME)
+                .orderBy(PLAYER_SCORE.SCORE.desc(), PLAYER.DISPLAY_NAME.asc())
+                .fetch()
+                .stream()
+                .map(record -> LeaderboardEntry.newBuilder()
+                        .withPlayer(Player.newBuilder()
+                                .withName(record.get(PLAYER.DISPLAY_NAME))
+                                .withId(record.get(PLAYER_SCORE.PLAYER_UUID))
+                                .build())
+                        .withScore(record.get(PLAYER_SCORE.SCORE))
+                        .withGamesWon((int)record.get("games_won"))
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private void createGroupMapping(final DSLContext transaction, final Big2Game completedBig2Game) {

@@ -19,6 +19,7 @@ import java.util.UUID;
 import javax.annotation.Generated;
 
 import org.jooq.Field;
+import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Schema;
@@ -42,7 +43,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Game extends TableImpl<GameRecord> {
 
-    private static final long serialVersionUID = -479043717;
+    private static final long serialVersionUID = 186811169;
 
     /**
      * The reference instance of <code>big_two.game</code>
@@ -63,9 +64,9 @@ public class Game extends TableImpl<GameRecord> {
     public final TableField<GameRecord, UUID> GAME_UUID = createField("game_uuid", org.jooq.impl.SQLDataType.BINARY(16).nullable(false), this, "", new UUIDBinaryConverter());
 
     /**
-     * The column <code>big_two.game.serialized_game</code>.
+     * The column <code>big_two.game.winner_player_uuid</code>.
      */
-    public final TableField<GameRecord, String> SERIALIZED_GAME = createField("serialized_game", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<GameRecord, UUID> WINNER_PLAYER_UUID = createField("winner_player_uuid", org.jooq.impl.SQLDataType.BINARY(16).nullable(false), this, "", new UUIDBinaryConverter());
 
     /**
      * The column <code>big_two.game.game_completed_epoch_ms</code>.
@@ -114,7 +115,7 @@ public class Game extends TableImpl<GameRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.GAME_PRIMARY);
+        return Arrays.<Index>asList(Indexes.GAME_GAME_PLAYER_FK, Indexes.GAME_PRIMARY);
     }
 
     /**
@@ -131,6 +132,14 @@ public class Game extends TableImpl<GameRecord> {
     @Override
     public List<UniqueKey<GameRecord>> getKeys() {
         return Arrays.<UniqueKey<GameRecord>>asList(Keys.KEY_GAME_PRIMARY);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ForeignKey<GameRecord, ?>> getReferences() {
+        return Arrays.<ForeignKey<GameRecord, ?>>asList(Keys.GAME_PLAYER_FK);
     }
 
     /**

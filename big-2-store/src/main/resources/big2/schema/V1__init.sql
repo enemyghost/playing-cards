@@ -26,8 +26,13 @@ CREATE TABLE IF NOT EXISTS `player_score`(
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `game` (
   `game_uuid` binary(16) PRIMARY KEY,
-  `serialized_game` text NOT NULL,
-  `game_completed_epoch_ms` bigint unsigned NOT NULL
+  `winner_player_uuid` binary(16) NOT NULL,
+  `game_completed_epoch_ms` bigint unsigned NOT NULL,
+  CONSTRAINT `game_player_fk`
+    FOREIGN KEY  (`winner_player_uuid`)
+    REFERENCES `player` (`player_uuid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION
 ) ENGINE = InnoDB CHARACTER SET utf8mb4;
 
 -- -----------------------------------------------------

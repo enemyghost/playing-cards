@@ -60,6 +60,7 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<GameRecord, PlayerRecord> GAME_PLAYER_FK = ForeignKeys0.GAME_PLAYER_FK;
     public static final ForeignKey<GamePlayerRecord, GameRecord> GAME_PLAYER_GAME_FK = ForeignKeys0.GAME_PLAYER_GAME_FK;
     public static final ForeignKey<GamePlayerRecord, PlayerRecord> GAME_PLAYER_PLAYER_FK = ForeignKeys0.GAME_PLAYER_PLAYER_FK;
     public static final ForeignKey<GamePlayerGroupRecord, GameRecord> GAME_PLAYER_GROUP_GAME_FK = ForeignKeys0.GAME_PLAYER_GROUP_GAME_FK;
@@ -86,6 +87,7 @@ public class Keys {
     }
 
     private static class ForeignKeys0 {
+        public static final ForeignKey<GameRecord, PlayerRecord> GAME_PLAYER_FK = Internal.createForeignKey(com.gmo.big2.store.mysql.schema.jooq.Keys.KEY_PLAYER_PRIMARY, Game.GAME, "game_player_fk", Game.GAME.WINNER_PLAYER_UUID);
         public static final ForeignKey<GamePlayerRecord, GameRecord> GAME_PLAYER_GAME_FK = Internal.createForeignKey(com.gmo.big2.store.mysql.schema.jooq.Keys.KEY_GAME_PRIMARY, GamePlayer.GAME_PLAYER, "game_player_game_fk", GamePlayer.GAME_PLAYER.GAME_UUID);
         public static final ForeignKey<GamePlayerRecord, PlayerRecord> GAME_PLAYER_PLAYER_FK = Internal.createForeignKey(com.gmo.big2.store.mysql.schema.jooq.Keys.KEY_PLAYER_PRIMARY, GamePlayer.GAME_PLAYER, "game_player_player_fk", GamePlayer.GAME_PLAYER.PLAYER_UUID);
         public static final ForeignKey<GamePlayerGroupRecord, GameRecord> GAME_PLAYER_GROUP_GAME_FK = Internal.createForeignKey(com.gmo.big2.store.mysql.schema.jooq.Keys.KEY_GAME_PRIMARY, GamePlayerGroup.GAME_PLAYER_GROUP, "game_player_group_game_fk", GamePlayerGroup.GAME_PLAYER_GROUP.GAME_UUID);

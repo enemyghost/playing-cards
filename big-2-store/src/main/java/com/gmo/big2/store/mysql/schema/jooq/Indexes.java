@@ -35,6 +35,7 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index GAME_GAME_PLAYER_FK = Indexes0.GAME_GAME_PLAYER_FK;
     public static final Index GAME_PRIMARY = Indexes0.GAME_PRIMARY;
     public static final Index GAME_PLAYER_GAME_PLAYER_PLAYER_FK = Indexes0.GAME_PLAYER_GAME_PLAYER_PLAYER_FK;
     public static final Index GAME_PLAYER_PRIMARY = Indexes0.GAME_PLAYER_PRIMARY;
@@ -55,6 +56,7 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     private static class Indexes0 {
+        public static Index GAME_GAME_PLAYER_FK = Internal.createIndex("game_player_fk", Game.GAME, new OrderField[] { Game.GAME.WINNER_PLAYER_UUID }, false);
         public static Index GAME_PRIMARY = Internal.createIndex("PRIMARY", Game.GAME, new OrderField[] { Game.GAME.GAME_UUID }, true);
         public static Index GAME_PLAYER_GAME_PLAYER_PLAYER_FK = Internal.createIndex("game_player_player_fk", GamePlayer.GAME_PLAYER, new OrderField[] { GamePlayer.GAME_PLAYER.PLAYER_UUID }, false);
         public static Index GAME_PLAYER_PRIMARY = Internal.createIndex("PRIMARY", GamePlayer.GAME_PLAYER, new OrderField[] { GamePlayer.GAME_PLAYER.GAME_UUID, GamePlayer.GAME_PLAYER.PLAYER_UUID }, true);

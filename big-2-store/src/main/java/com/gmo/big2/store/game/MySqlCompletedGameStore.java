@@ -26,12 +26,10 @@ import com.gmo.playing.cards.Player;
  */
 public class MySqlCompletedGameStore implements CompletedGameStore {
     private DSLContext dslContext;
-    private ObjectMapper objectMapper;
     private Clock clock;
 
     public MySqlCompletedGameStore(final DSLContext dslContext, final ObjectMapper objectMapper) {
         this.dslContext = Objects.requireNonNull(dslContext, "Null DSL Context");
-        this.objectMapper = Objects.requireNonNull(objectMapper, "Null Object Mapper");
         this.clock = Clock.systemUTC();
     }
 
@@ -46,8 +44,10 @@ public class MySqlCompletedGameStore implements CompletedGameStore {
             // Insert serialized game into GAME table
             transaction
                     .insertInto(GAME)
-                    .columns(GAME.GAME_UUID, GAME.SERIALIZED_GAME, GAME.GAME_COMPLETED_EPOCH_MS)
-                    .values(completedBig2Game.getId(), objectMapper.writeValueAsString(completedBig2Game), clock.instant())
+                    .columns(GAME.GAME_UUID, GAME.WINNER_PLAYER_UUID, GAME.GAME_COMPLETED_EPOCH_MS)
+                    .values(completedBig2Game.getId(),
+                            completedBig2Game.getWinner().map(Player::getId).orElseThrow(() -> new RuntimeException("ain't no winner")),
+                            clock.instant())
                     .execute();
 
             // Upsert user group and add mapping to this game

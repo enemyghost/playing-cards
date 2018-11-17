@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gmo.big.two.auth.api.JsonWebTokenAuthenticationProvider;
-import com.gmo.big.two.auth.entities.AuthenticatedUser;
-import com.gmo.big.two.auth.entities.AuthenticationRequest;
-import com.gmo.big.two.auth.entities.AuthenticationSessionToken;
-import com.gmo.big.two.auth.entities.RegistrationRequest;
+import com.gmo.big2.auth.entities.AuthenticatedUser;
+import com.gmo.big2.auth.entities.AuthenticationRequest;
+import com.gmo.big2.auth.entities.AuthenticationSessionToken;
+import com.gmo.big2.auth.entities.RegistrationRequest;
 import com.gmo.big2.api.servlet.ServletAuthUtils;
 
 /**

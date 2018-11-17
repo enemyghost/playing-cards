@@ -1,4 +1,4 @@
-package com.gmo.big.two.auth.entities;
+package com.gmo.big2.auth.entities;
 
 /**
  * Roles supported by <i>The Console</i>

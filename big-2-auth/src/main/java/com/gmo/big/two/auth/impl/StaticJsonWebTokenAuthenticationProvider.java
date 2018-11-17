@@ -6,13 +6,13 @@ import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 
 import com.gmo.big.two.auth.api.JsonWebTokenAuthenticationProvider;
-import com.gmo.big.two.auth.entities.AuthenticatedUser;
-import com.gmo.big.two.auth.entities.AuthenticationRequest;
-import com.gmo.big.two.auth.entities.AuthenticationSessionToken;
-import com.gmo.big.two.auth.entities.RegistrationRequest;
-import com.gmo.big.two.auth.entities.Role;
-import com.gmo.big.two.auth.entities.User;
-import com.gmo.big.two.auth.store.UserAuthStore;
+import com.gmo.big2.auth.entities.AuthenticatedUser;
+import com.gmo.big2.auth.entities.AuthenticationRequest;
+import com.gmo.big2.auth.entities.AuthenticationSessionToken;
+import com.gmo.big2.auth.entities.RegistrationRequest;
+import com.gmo.big2.auth.entities.Role;
+import com.gmo.big2.auth.entities.User;
+import com.gmo.big2.store.user.UserAuthStore;
 import com.gmo.big.two.auth.utils.JwtUtils;
 
 /**

@@ -16,7 +16,7 @@ import com.gmo.playing.cards.Player;
  * @author tedelen
  */
 public class ObjectMapperSingleton {
-    static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     static final ObjectReader READER_FOR_GAME = OBJECT_MAPPER.readerFor(Big2Game.class);
     static final ObjectReader READER_FOR_GAME_LOBBY = OBJECT_MAPPER.readerFor(Big2GameLobby.class);
     static final ObjectReader READER_FOR_PLAYER = OBJECT_MAPPER.readerFor(Player.class);

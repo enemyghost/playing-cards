@@ -14,6 +14,8 @@
         <module>big-2</module>
         <module>big-2-api</module>
         <module>big-2-auth</module>
+        <module>big-2-auth-entities</module>
+        <module>big-2-store</module>
         <module>playing-cards</module>
     </modules>
 

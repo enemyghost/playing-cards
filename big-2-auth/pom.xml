@@ -40,5 +40,15 @@
             <artifactId>jedis</artifactId>
             <version>2.9.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.gmo</groupId>
+            <artifactId>big-2-store</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.gmo</groupId>
+            <artifactId>big-2-auth-entities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

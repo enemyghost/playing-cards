@@ -1,8 +1,8 @@
 package com.gmo.big.two.auth.api;
 
-import com.gmo.big.two.auth.entities.AuthenticationRequest;
-import com.gmo.big.two.auth.entities.AuthenticationSessionToken;
-import com.gmo.big.two.auth.entities.RegistrationRequest;
+import com.gmo.big2.auth.entities.AuthenticationRequest;
+import com.gmo.big2.auth.entities.AuthenticationSessionToken;
+import com.gmo.big2.auth.entities.RegistrationRequest;
 import io.jsonwebtoken.Jwts;
 
 /**

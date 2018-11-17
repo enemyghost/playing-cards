@@ -1,4 +1,4 @@
-package com.gmo.big.two.auth.store;
+package com.gmo.big2.store.user;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.gmo.big.two.auth.entities.User;
+import com.gmo.big2.auth.entities.User;
 import com.google.common.base.Strings;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;

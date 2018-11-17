@@ -1,11 +1,11 @@
-package com.gmo.big.two.auth.entities;
+package com.gmo.big2.auth.entities;
 
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.gmo.big.two.auth.entities.AuthenticationSessionToken.Builder;
+import com.gmo.big2.auth.entities.AuthenticationSessionToken.Builder;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 

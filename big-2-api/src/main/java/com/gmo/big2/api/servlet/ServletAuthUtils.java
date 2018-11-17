@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.Optional;
 
-import com.gmo.big.two.auth.entities.AuthenticatedUser;
+import com.gmo.big2.auth.entities.AuthenticatedUser;
 
 /**
  * Utilities for authentication / servlet

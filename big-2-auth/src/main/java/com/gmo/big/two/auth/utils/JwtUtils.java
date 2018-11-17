@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gmo.big.two.auth.entities.AuthenticatedUser;
-import com.gmo.big.two.auth.entities.Role;
-import com.gmo.big.two.auth.entities.User;
+import com.gmo.big2.auth.entities.AuthenticatedUser;
+import com.gmo.big2.auth.entities.Role;
+import com.gmo.big2.auth.entities.User;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;

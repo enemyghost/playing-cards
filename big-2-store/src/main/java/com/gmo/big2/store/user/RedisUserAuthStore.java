@@ -1,4 +1,4 @@
-package com.gmo.big.two.auth.store;
+package com.gmo.big2.store.user;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gmo.big.two.auth.entities.User;
+import com.gmo.big2.auth.entities.User;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import redis.clients.jedis.ShardedJedis;

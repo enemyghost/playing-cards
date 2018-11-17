@@ -149,6 +149,15 @@ public class Big2Game {
     }
 
     @JsonIgnore
+    public Map<Player, Integer> getScores() {
+        if (this.isCompleted()) {
+            return GAME_SCORER.score(this);
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
+    @JsonIgnore
     public synchronized boolean canPlay(final Player player, final Collection<Card> cards) {
         if (GameState.COMPLETED.equals(gameState)) {
             return false;
@@ -233,7 +242,7 @@ public class Big2Game {
         }
 
         if (this.isCompleted()) {
-            gameView.withScores(GAME_SCORER.score(this));
+            gameView.withScores(getScores());
         }
 
         return gameView.build();

@@ -1,4 +1,4 @@
-package com.gmo.big.two.auth.entities;
+package com.gmo.big2.auth.entities;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static java.util.Objects.requireNonNull;
@@ -7,7 +7,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.gmo.big.two.auth.entities.AuthenticationRequest.Builder;
+import com.gmo.big2.auth.entities.AuthenticationRequest.Builder;
 import com.google.common.base.MoreObjects;
 
 /**

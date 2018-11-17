@@ -1,8 +1,8 @@
-package com.gmo.big.two.auth.store;
+package com.gmo.big2.store.user;
 
 import java.util.Optional;
 
-import com.gmo.big.two.auth.entities.User;
+import com.gmo.big2.auth.entities.User;
 
 /**
  * @author tedelen

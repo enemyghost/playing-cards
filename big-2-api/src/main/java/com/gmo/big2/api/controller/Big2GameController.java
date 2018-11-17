@@ -3,8 +3,6 @@ package com.gmo.big2.api.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,13 +22,11 @@ import com.gmo.big.two.Big2Game;
 import com.gmo.big.two.Big2GameLobby;
 import com.gmo.big.two.Big2GameView;
 import com.gmo.big.two.Big2GameView.GameState;
-import com.gmo.big.two.ClassicGameScorer;
-import com.gmo.big.two.GameScorer;
-import com.gmo.big.two.auth.entities.User;
 import com.gmo.big2.api.servlet.ServletAuthUtils;
 import com.gmo.big2.api.store.GameStore;
+import com.gmo.big2.auth.entities.User;
+import com.gmo.big2.store.game.CompletedGameStore;
 import com.gmo.playing.cards.Card;
-import com.gmo.playing.cards.Hand;
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.Player;
 
@@ -42,9 +38,11 @@ import com.gmo.playing.cards.Player;
 @CrossOrigin(origins = {"http://c6db7663.ngrok.io", "https://whispering-ocean-60773.herokuapp.com", "http://localhost:3000" }, allowCredentials = "true")
 public class Big2GameController {
     private final GameStore gameStore;
+    private final CompletedGameStore completedGameStore;
 
-    public Big2GameController(final GameStore gameStore) {
+    public Big2GameController(final GameStore gameStore, final CompletedGameStore completedGameStore) {
         this.gameStore = Objects.requireNonNull(gameStore, "Null game store");
+        this.completedGameStore = Objects.requireNonNull(completedGameStore, "Null completed game store");
     }
 
     @PostMapping(value = "/games")
@@ -130,18 +128,22 @@ public class Big2GameController {
     public ResponseEntity<Big2GameView> play(final HttpServletRequest request,
                                              @PathVariable final UUID gameUuid,
                                              @RequestBody final List<Card> cardsToPlay) {
-        final Optional<Big2Game> big2Game = gameStore.getGame(gameUuid);
-        if (!big2Game.isPresent()) {
+        final Optional<Big2Game> big2GameOpt = gameStore.getGame(gameUuid);
+        if (!big2GameOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
         final Player player = getPlayer(request);
+        final Big2Game big2Game = big2GameOpt.get();
         try {
-            big2Game.get().play(player, cardsToPlay);
+            big2Game.play(player, cardsToPlay);
         } catch (final Big2Exception exception) {
-            return ResponseEntity.badRequest().body(big2Game.get().gameViewForPlayer(player));
+            return ResponseEntity.badRequest().body(big2Game.gameViewForPlayer(player));
         }
-        gameStore.updateGame(big2Game.get());
-        return ResponseEntity.ok(big2Game.get().gameViewForPlayer(player));
+        gameStore.updateGame(big2Game);
+        if (big2Game.isCompleted()) {
+            completedGameStore.saveFinalGameState(big2Game);
+        }
+        return ResponseEntity.ok(big2Game.gameViewForPlayer(player));
     }
 
     @PostMapping(value = "/games/{gameUuid}/players")

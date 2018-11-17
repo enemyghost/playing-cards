@@ -7,12 +7,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.gmo.big.two.auth.entities.AuthenticatedUser;
+import com.gmo.big2.auth.entities.AuthenticatedUser;
 import com.gmo.big.two.auth.utils.JwtUtils;
 import com.gmo.big2.api.annotation.AdminRequired;
 import com.gmo.big2.api.annotation.LoginNotRequired;

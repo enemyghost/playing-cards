@@ -1,4 +1,4 @@
-package com.gmo.big.two.auth.entities;
+package com.gmo.big2.auth.entities;
 
 import static java.util.Objects.requireNonNull;
 

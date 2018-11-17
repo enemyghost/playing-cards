@@ -44,7 +44,7 @@ public class Big2DeckFactory {
 
     public static Card getByAbbrev(final String rank, final String suit) {
         return Card.newBuilder()
-                .withRank(RANKS.stream().filter(r -> r.getCardName().getSymbol().equalsIgnoreCase(rank)).findFirst().orElseThrow(() -> new IllegalArgumentException("Could not find suit")))
+                .withRank(RANKS.stream().filter(r -> r.getCardName().getSymbol().equalsIgnoreCase(rank)).findFirst().orElseThrow(() -> new IllegalArgumentException("Could not find card")))
                 .withSuit(SUITS.stream().filter(s -> s.getSuitName().getAbbreviation().equalsIgnoreCase(suit)).findFirst().orElseThrow(() -> new IllegalArgumentException("Could not find suit")))
                 .build();
     }

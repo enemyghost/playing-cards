@@ -24,6 +24,8 @@ import com.gmo.big.two.Big2Game;
 import com.gmo.big.two.Big2GameLobby;
 import com.gmo.big.two.Big2GameView;
 import com.gmo.big.two.Big2GameView.GameState;
+import com.gmo.big.two.ClassicGameScorer;
+import com.gmo.big.two.GameScorer;
 import com.gmo.big.two.auth.entities.User;
 import com.gmo.big2.api.servlet.ServletAuthUtils;
 import com.gmo.big2.api.store.GameStore;
@@ -69,13 +71,13 @@ public class Big2GameController {
         } else if (big2Game.getNextGameId().isPresent()) {
             return ResponseEntity.badRequest().build();
         }
-        final Map<Player, Hand> finalHands = big2Game.getFinalHands();
+
         final List<Player> players = big2Game.getPlayers();
-        final Player winner = finalHands.entrySet().stream()
-                .filter((e) -> e.getValue().getCards().size() == 0)
-                .map(Entry::getKey)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("aint no winner"));
+        final Player winner = big2Game.getWinner().orElseThrow(() -> new RuntimeException("ain't no winner"));
+        if (!player.equals(winner)) {
+            return ResponseEntity.badRequest().build();
+        }
+
         final Big2GameLobby big2GameLobby = gameStore.newLobby();
         big2Game.setNextGameId(big2GameLobby.getGameId());
         gameStore.updateGame(big2Game);

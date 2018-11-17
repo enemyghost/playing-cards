@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
@@ -40,6 +41,8 @@ import com.google.common.collect.Lists;
  */
 @JsonDeserialize(builder = Big2Game.Builder.class)
 public class Big2Game {
+    private static final GameScorer GAME_SCORER = ClassicGameScorer.DEFAULT;
+
     private final UUID id;
     private final List<Player> players;
     private final Map<UUID, Hand> playerHands;
@@ -133,6 +136,19 @@ public class Big2Game {
     }
 
     @JsonIgnore
+    public Optional<Player> getWinner() {
+        if (!this.isCompleted()) {
+            return Optional.empty();
+        }
+        return getFinalHands()
+                .entrySet()
+                .stream()
+                .filter((e) -> e.getValue().getCards().size() == 0)
+                .map(Entry::getKey)
+                .findFirst();
+    }
+
+    @JsonIgnore
     public synchronized boolean canPlay(final Player player, final Collection<Card> cards) {
         if (GameState.COMPLETED.equals(gameState)) {
             return false;
@@ -215,6 +231,11 @@ public class Big2Game {
             }
             gameView.addHandView(handViewBuilder.build());
         }
+
+        if (this.isCompleted()) {
+            gameView.withScores(GAME_SCORER.score(this));
+        }
+
         return gameView.build();
     }
 

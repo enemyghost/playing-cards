@@ -2,16 +2,17 @@ package com.gmo.big.two;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.Player;
 import com.google.common.collect.ImmutableList;
 
-/**
- * @author tedelen
- */
 public class Big2GameView {
     public enum GameState {
         WAITING_FOR_PLAYERS,
@@ -27,6 +28,7 @@ public class Big2GameView {
     private final List<Big2Play> lastPlays;
     private final UUID gameId;
     private final UUID nextGameId;
+    private final Map<UUID, Integer> scores;
 
     private Big2GameView(final Builder builder) {
         gameViewOwner = builder.gameViewOwner;
@@ -36,6 +38,7 @@ public class Big2GameView {
         lastPlays = builder.lastPlays.build();
         gameId = builder.gameId;
         nextGameId = builder.nextGameId;
+        scores = builder.scores;
     }
 
     public static Builder newBuilder() {
@@ -66,6 +69,10 @@ public class Big2GameView {
 
     public UUID getNextGameId() { return nextGameId; }
 
+    public Map<UUID, Integer> getScores() {
+        return scores;
+    }
+
     public static final class Builder {
         private Player gameViewOwner;
         private GameState gameState;
@@ -74,10 +81,12 @@ public class Big2GameView {
         private ImmutableList.Builder<Big2Play> lastPlays;
         private UUID gameId;
         private UUID nextGameId;
+        private Map<UUID, Integer> scores;
 
         private Builder() {
             handViews = ImmutableList.builder();
             lastPlays = ImmutableList.builder();
+            scores = Collections.emptyMap();
         }
 
         public Builder withGameId(final UUID gameId) {
@@ -112,6 +121,13 @@ public class Big2GameView {
 
         public Builder withGameViewOwner(final Player gameViewOwner) {
             this.gameViewOwner = gameViewOwner;
+            return this;
+        }
+
+        public Builder withScores(final Map<Player, Integer> scores) {
+            this.scores = requireNonNull(scores, "Null map").entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(entry -> entry.getKey().getId(), Entry::getValue));
             return this;
         }
 

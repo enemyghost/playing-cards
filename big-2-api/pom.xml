@@ -14,7 +14,8 @@
 
     <properties>
         <cond.version.jackson>2.9.0</cond.version.jackson>
-        <cond.version.spring>5.0.5.RELEASE</cond.version.spring>
+        <cond.version.spring>5.1.2.RELEASE</cond.version.spring>
+        <cond.version.spring-boot>2.1.0.RELEASE</cond.version.spring-boot>
         <full-artifact-name>target/${project.artifactId}-${project.version}.jar</full-artifact-name>
     </properties>
     <dependencies>
@@ -64,6 +65,11 @@
             <version>${cond.version.spring}</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
+            <version>${cond.version.spring}</version>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>4.0.1</version>
@@ -102,7 +108,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.0.4.RELEASE</version>
+            <version>${cond.version.spring-boot}</version>
         </dependency>
         <dependency>
             <groupId>redis.clients</groupId>
@@ -113,6 +119,11 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>3.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+            <version>${cond.version.spring-boot}</version>
         </dependency>
     </dependencies>
 

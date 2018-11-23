@@ -9,6 +9,9 @@ import java.util.UUID;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,6 +47,13 @@ public class Big2GameController {
     public Big2GameController(final GameStore gameStore, final CompletedGameStore completedGameStore) {
         this.gameStore = Objects.requireNonNull(gameStore, "Null game store");
         this.completedGameStore = Objects.requireNonNull(completedGameStore, "Null completed game store");
+    }
+
+    @MessageMapping("/games/push/{gameId}")
+    @SendTo("/topic/games/{gameId}")
+    public UUID pushUpdate(@DestinationVariable final UUID gameId) {
+        System.out.println("Got update");
+        return gameId;
     }
 
     @GetMapping(value = "/leaderboard")

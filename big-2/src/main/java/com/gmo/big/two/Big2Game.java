@@ -201,6 +201,7 @@ public class Big2Game {
             if (plays.size() == 0 || nextPlayer.getId().equals(plays.peek().getPlayer().getId())) {
                 gameState = GameState.OPEN;
             }
+            plays.push(Big2Play.pass(player));
         }
 
         return gameViewForPlayer(player);
@@ -214,13 +215,8 @@ public class Big2Game {
                 .withGameState(gameState)
                 .withNextToPlay(nextToPlay())
                 .withGameViewOwner(player);
-        if (!GameState.OPEN.equals(gameState)) {
-            for (final Big2Play play : Lists.reverse(plays)) {
-                gameView.addLastPlay(play);
-                if (play.getPlayer().equals(player)) {
-                    break;
-                }
-            }
+        for (final Big2Play play : Lists.reverse(plays)) {
+            gameView.addLastPlay(play);
         }
 
         final int playerOffset = players.contains(player) ? players.size() - players.indexOf(player) : 0;

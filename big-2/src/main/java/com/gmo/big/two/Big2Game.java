@@ -3,15 +3,16 @@ package com.gmo.big.two;
 import static com.gmo.big.two.Big2HandComparator.isValidBig2Hand;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -32,7 +33,6 @@ import com.gmo.playing.cards.Hand;
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.Player;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 /**
  * A Big 2 game.
@@ -46,7 +46,7 @@ public class Big2Game {
     private final UUID id;
     private final List<Player> players;
     private final Map<UUID, Hand> playerHands;
-    private final Stack<Big2Play> plays;
+    private final Deque<Big2Play> plays;
     private final Player dealer;
 
     private GameState gameState;
@@ -96,7 +96,7 @@ public class Big2Game {
         return playerHands;
     }
 
-    public Stack<Big2Play> getPlays() {
+    public Deque<Big2Play> getPlays() {
         return plays;
     }
 
@@ -183,7 +183,10 @@ public class Big2Game {
         } else if (cards.size() > 5) {
             throw new TooManyCardsException(player);
         } else if (!isValidPlay(cards)) {
-            throw new IllegalPlayException(player, plays.empty() ? Collections.emptyList() : plays.peek().getHand());
+            throw new IllegalPlayException(player, plays.stream()
+                    .filter(t->!t.isPass()).findFirst()
+                    .map(Big2Play::getHand)
+                    .orElse(Collections.emptyList()));
         }
 
         nextToPlay.incrementAndGet();
@@ -198,7 +201,12 @@ public class Big2Game {
             }
         } else {
             final Player nextPlayer = nextToPlay();
-            if (plays.size() == 0 || nextPlayer.getId().equals(plays.peek().getPlayer().getId())) {
+            if (plays.size() == 0 ||
+                    nextPlayer.getId().equals(plays.stream().filter(t -> !t.isPass())
+                            .findFirst()
+                            .map(Big2Play::getPlayer)
+                            .map(Player::getId)
+                            .orElse(null))) {
                 gameState = GameState.OPEN;
             }
             plays.push(Big2Play.pass(player));
@@ -215,9 +223,8 @@ public class Big2Game {
                 .withGameState(gameState)
                 .withNextToPlay(nextToPlay())
                 .withGameViewOwner(player);
-        for (final Big2Play play : Lists.reverse(plays)) {
-            gameView.addLastPlay(play);
-        }
+
+        plays.forEach(gameView::addLastPlay);
 
         final int playerOffset = players.contains(player) ? players.size() - players.indexOf(player) : 0;
         for (int i = 0; i < players.size(); i++) {
@@ -254,8 +261,13 @@ public class Big2Game {
             return true;
         }
 
-        final Big2Play lastPlay = plays.peek();
-        if (lastPlay.getHand().size() != nextPlay.size()) {
+        final Big2Play lastPlay = plays.stream()
+                .filter(t -> !t.isPass())
+                .findFirst()
+                .orElse(null);
+        if (lastPlay == null) {
+            return true;
+        } else if (lastPlay.getHand().size() != nextPlay.size()) {
             return false;
         } else {
             return Big2HandComparator.INSTANCE.compare(nextPlay, lastPlay.getHand()) > 0;
@@ -279,14 +291,14 @@ public class Big2Game {
         private UUID nextGameId;
         private List<Player> players;
         private Map<UUID, Hand> playerHands;
-        private Stack<Big2Play> plays;
+        private Deque<Big2Play> plays;
         private Player dealer;
         private GameState gameState;
         private AtomicInteger nextToPlay;
 
         private Builder() {
             this.nextToPlay = new AtomicInteger(0);
-            this.plays = new Stack<>();
+            this.plays = new ArrayDeque<>();
             this.gameState = GameState.OPEN;
         }
 
@@ -310,7 +322,7 @@ public class Big2Game {
             return this;
         }
 
-        public Builder withPlays(Stack<Big2Play> plays) {
+        public Builder withPlays(Deque<Big2Play> plays) {
             this.plays = plays;
             return this;
         }

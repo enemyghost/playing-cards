@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.gmo.playing.cards.Card;
@@ -38,6 +39,11 @@ public class Big2Play {
 
     public Collection<Card> getHand() {
         return hand;
+    }
+
+    @JsonIgnore
+    public boolean isPass() {
+        return hand.size() == 0;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

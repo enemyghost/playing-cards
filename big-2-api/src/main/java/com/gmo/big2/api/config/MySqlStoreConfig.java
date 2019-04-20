@@ -18,9 +18,9 @@ public class MySqlStoreConfig {
     @Bean
     public DataSource dataSource() {
         final String hostname = databaseHostname();
-        String jdbcUrl = String.format("jdbc:mysql://%s:%d/big_two", hostname, databasePort());
+        String jdbcUrl = String.format("jdbc:mysql://%s:%d/big_two?serverTimezone=UTC&useSSL=false", hostname, databasePort());
         if (hostname.equals("localhost")) {
-            jdbcUrl = jdbcUrl + "?serverTimezone=UTC";
+            jdbcUrl = jdbcUrl + "&allowPublicKeyRetrieval=true";
         }
 
         final HikariConfig hikariConfig = new HikariConfig();

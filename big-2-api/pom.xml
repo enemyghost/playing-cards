@@ -13,7 +13,7 @@
     <artifactId>big-2-api</artifactId>
 
     <properties>
-        <cond.version.jackson>2.9.0</cond.version.jackson>
+        <cond.version.jackson>2.9.8</cond.version.jackson>
         <cond.version.spring>5.1.2.RELEASE</cond.version.spring>
         <cond.version.spring-boot>2.1.0.RELEASE</cond.version.spring-boot>
         <full-artifact-name>target/${project.artifactId}-${project.version}.jar</full-artifact-name>
@@ -104,7 +104,11 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${cond.version.jackson}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>${cond.version.spring-boot}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -124,6 +128,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
             <version>${cond.version.spring-boot}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
         </dependency>
     </dependencies>
 

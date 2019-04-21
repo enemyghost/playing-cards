@@ -29,7 +29,7 @@ import com.google.common.collect.Ordering;
  * @author tedelen
  */
 public class Big2HandComparator implements Comparator<Collection<Card>> {
-    static final Big2HandComparator INSTANCE = new Big2HandComparator();
+    public static final Big2HandComparator INSTANCE = new Big2HandComparator();
 
     private static final List<HandPredicate> ORDERED_PREDICATES = ImmutableList.of(
             STRAIGHT_FLUSH_PREDICATE,
@@ -66,6 +66,35 @@ public class Big2HandComparator implements Comparator<Collection<Card>> {
 
     public static boolean isValidBig2Hand(final Collection<Card> nextPlay) {
         return ORDERED_PREDICATES.stream().anyMatch(t -> t.test(nextPlay));
+    }
+
+    /**
+     * Gets a {@link CardRank} that has {@code numCards} occurrences in the given collection of {@link Card}.
+     *
+     * This is useful for, e.g., finding the rank of the card that has 3 occurrences in a full house or 4 occurrences
+     * in quads.
+     *
+     * @param cards {@link Collection} of {@link Card} to find the rank in
+     * @param numCards occurrences of {@link CardRank} to look for
+     * @param message error message if no such rank is found
+     *
+     * @throws IllegalStateException with the given {@code message} if there are no cards with the given count in the
+     *      given collection.
+     *
+     * @return {@link CardRank} that has {@code numCards} occurrences in the given collection of {@link Card}
+     */
+    private static CardRank getCardRankOfSize(final Collection<Card> cards,
+                                              final int numCards,
+                                              final String message) {
+        return cards.stream()
+                .map(Card::getRank)
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet()
+                .stream()
+                .filter(cr -> cr.getValue() == numCards)
+                .map(Entry::getKey)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(message));
     }
 
     static class MatchPredicate implements HandPredicate {
@@ -230,25 +259,14 @@ public class Big2HandComparator implements Comparator<Collection<Card>> {
         @Override
         public int compare(final Collection<Card> o1, final Collection<Card> o2) {
             if (test(o1) && test(o2)) {
-                final CardRank dominantRank1 = o1.stream()
-                        .map(Card::getRank)
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                        .entrySet()
-                        .stream()
-                        .filter(cr -> cr.getValue() == 3)
-                        .map(Entry::getKey)
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("Not a full house"));
-                final CardRank dominantRank2 = o2.stream()
-                        .map(Card::getRank)
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                        .entrySet()
-                        .stream()
-                        .filter(cr -> cr.getValue() == 3)
-                        .map(Entry::getKey)
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("Not a full house"));
-                return dominantRank1.compareTo(dominantRank2);
+                final CardRank dominantRank1 = getCardRankOfSize(o1, 3, "Not a full house");
+                final CardRank dominantRank2 = getCardRankOfSize(o2, 3, "Not a full house");
+                if (!dominantRank1.equals(dominantRank2)) {
+                    return dominantRank1.compareTo(dominantRank2);
+                }
+                final CardRank secondaryRank1 = getCardRankOfSize(o1, 2, "Not a full house");
+                final CardRank secondaryRank2 = getCardRankOfSize(o2, 2, "Not a full house");
+                return secondaryRank1.compareTo(secondaryRank2);
             }
             return 0;
         }
@@ -273,25 +291,14 @@ public class Big2HandComparator implements Comparator<Collection<Card>> {
         @Override
         public int compare(final Collection<Card> o1, final Collection<Card> o2) {
             if (test(o1) && test(o2)) {
-                final CardRank dominantRank1 = o1.stream()
-                        .map(Card::getRank)
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                        .entrySet()
-                        .stream()
-                        .filter(cr -> cr.getValue() == 4)
-                        .map(Entry::getKey)
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("Not quads"));
-                final CardRank dominantRank2 = o2.stream()
-                        .map(Card::getRank)
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                        .entrySet()
-                        .stream()
-                        .filter(cr -> cr.getValue() == 4)
-                        .map(Entry::getKey)
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("Not quads"));
-                return dominantRank1.compareTo(dominantRank2);
+                final CardRank dominantRank1 = getCardRankOfSize(o1, 4, "Not quads");
+                final CardRank dominantRank2 = getCardRankOfSize(o2, 4, "Not quads");
+                if (!dominantRank1.equals(dominantRank2)) {
+                    return dominantRank1.compareTo(dominantRank2);
+                }
+                final CardRank secondaryRank1 = getCardRankOfSize(o1, 1, "Not quads");
+                final CardRank secondaryRank2 = getCardRankOfSize(o2, 1, "Not quads");
+                return secondaryRank1.compareTo(secondaryRank2);
             }
             return 0;
         }

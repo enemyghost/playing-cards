@@ -66,9 +66,9 @@ public class Big2Play {
         }
 
         public Big2Play build() {
-            Preconditions.checkArgument(hand.size() <= 5, "Hand must be 5 or fewer cards");
             Objects.requireNonNull(player, "Null player");
             Objects.requireNonNull(hand, "Null hand");
+            Preconditions.checkArgument(hand.isEmpty() || Big2HandComparator.isValidBig2Hand(hand), "Not a valid Big2 play");
             return new Big2Play(this);
         }
     }

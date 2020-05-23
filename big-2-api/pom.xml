@@ -13,7 +13,7 @@
     <artifactId>big-2-api</artifactId>
 
     <properties>
-        <cond.version.jackson>2.9.8</cond.version.jackson>
+        <cond.version.jackson>2.11.0</cond.version.jackson>
         <cond.version.spring>5.1.2.RELEASE</cond.version.spring>
         <cond.version.spring-boot>2.1.0.RELEASE</cond.version.spring-boot>
         <full-artifact-name>target/${project.artifactId}-${project.version}.jar</full-artifact-name>

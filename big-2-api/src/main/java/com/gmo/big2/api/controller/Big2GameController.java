@@ -190,8 +190,14 @@ public class Big2GameController {
     }
 
     @GetMapping(value = "/fullHistory.csv", produces = "text/csv")
-    public void fullHistoryCsv(final HttpServletResponse response) throws Exception {
-        GameResultsCsvResponseWriter.writeResponse(response.getWriter(), completedGameStore.history());
+    public void fullHistoryCsv(final HttpServletResponse response,
+                               @RequestParam(value = "flattened", required = false, defaultValue = "false") final boolean flattened) throws Exception {
+        final GameResults history = completedGameStore.history();
+        if (flattened) {
+            GameResultsCsvResponseWriter.writeFlattenedResponse(response.getWriter(), history);
+        } else {
+            GameResultsCsvResponseWriter.writeWideResponse(response.getWriter(), history);
+        }
     }
 
     private Big2GameView gameLobbyToView(final Big2GameLobby gameLobby, final Player player) {

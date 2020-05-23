@@ -145,6 +145,7 @@ public class MySqlCompletedGameStore implements CompletedGameStore {
                             .withBot("not_a_bot".equals(record.get(PLAYER.DISPLAY_NAME)))
                             .build()), record.get(GAME_PLAYER.SCORE));
         }
+        Optional.ofNullable(currentResult).ifPresent(r -> results.add(r.build()));
 
         return new GameResults(results.build());
     }

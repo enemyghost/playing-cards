@@ -10,13 +10,24 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.jooq.impl.DSL.count;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.gmo.big2.store.mysql.schema.jooq.tables.PlayerScore;
+import com.gmo.playing.cards.GameResult;
+import com.gmo.playing.cards.GameResults;
+import com.google.common.collect.ImmutableList;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
+import org.jooq.Record5;
+import org.jooq.Result;
 import org.jooq.impl.DSL;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +42,7 @@ public class MySqlCompletedGameStore implements CompletedGameStore {
     private DSLContext dslContext;
     private Clock clock;
 
-    public MySqlCompletedGameStore(final DSLContext dslContext, final ObjectMapper objectMapper) {
+    public MySqlCompletedGameStore(final DSLContext dslContext) {
         this.dslContext = Objects.requireNonNull(dslContext, "Null DSL Context");
         this.clock = Clock.systemUTC();
     }
@@ -84,8 +95,7 @@ public class MySqlCompletedGameStore implements CompletedGameStore {
                 .innerJoin(PLAYER).on(PLAYER.PLAYER_UUID.eq(PLAYER_SCORE.PLAYER_UUID))
                 .groupBy(PLAYER_SCORE.PLAYER_UUID, PLAYER_SCORE.SCORE, PLAYER.DISPLAY_NAME)
                 .orderBy(PLAYER_SCORE.SCORE.desc(), PLAYER.DISPLAY_NAME.asc())
-                .fetch()
-                .stream()
+                .fetchStream()
                 .map(record -> LeaderboardEntry.newBuilder()
                         .withPlayer(Player.newBuilder()
                                 .withName(record.get(PLAYER.DISPLAY_NAME))
@@ -95,6 +105,48 @@ public class MySqlCompletedGameStore implements CompletedGameStore {
                         .withGamesWon((int)record.get("games_won"))
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * select g.game_completed_epoch_ms, p.display_name as player, gp.score as player_score
+     * from game g
+     * inner join game_player gp using (game_uuid)
+     * inner join player p using (player_uuid)
+     * order by g.game_completed_epoch_ms asc, gp.score desc;
+     * @return
+     */
+    @Override
+    public GameResults history() {
+        final Result<Record5<UUID, Instant, UUID, String, Integer>> fetch = dslContext.select(GAME.GAME_UUID, GAME.GAME_COMPLETED_EPOCH_MS, PLAYER.PLAYER_UUID, PLAYER.DISPLAY_NAME,
+                GAME_PLAYER.SCORE)
+                .from(GAME)
+                .innerJoin(GAME_PLAYER).on(GAME.GAME_UUID.eq(GAME_PLAYER.GAME_UUID))
+                .innerJoin(PLAYER).on(GAME_PLAYER.PLAYER_UUID.eq(PLAYER.PLAYER_UUID))
+                .orderBy(GAME.GAME_COMPLETED_EPOCH_MS, GAME_PLAYER.SCORE.desc())
+                .fetch();
+        final Map<UUID, Player> knownPlayers = new HashMap<>();
+        final ImmutableList.Builder<GameResult> results = ImmutableList.builder();
+        UUID currentUuid = null;
+        GameResult.Builder currentResult = null;
+        for (final Record5<UUID, Instant, UUID, String, Integer> record : fetch) {
+            final UUID nextUuid = record.get(GAME.GAME_UUID);
+            if (!nextUuid.equals(currentUuid)) {
+                Optional.ofNullable(currentResult).ifPresent(r -> results.add(r.build()));
+                currentUuid = nextUuid;
+                currentResult = GameResult.newBuilder()
+                        .withGameId(currentUuid)
+                        .withGameCompletedInstant(record.get(GAME.GAME_COMPLETED_EPOCH_MS));
+            }
+            final UUID playerUuid = record.get(PLAYER.PLAYER_UUID);
+            currentResult.addPlayerScore(knownPlayers.computeIfAbsent(playerUuid, (uuid) ->
+                    Player.newBuilder()
+                            .withId(playerUuid)
+                            .withName(record.get(PLAYER.DISPLAY_NAME))
+                            .withBot("not_a_bot".equals(record.get(PLAYER.DISPLAY_NAME)))
+                            .build()), record.get(GAME_PLAYER.SCORE));
+        }
+
+        return new GameResults(results.build());
     }
 
     private void createGroupMapping(final DSLContext transaction, final Big2Game completedBig2Game) {

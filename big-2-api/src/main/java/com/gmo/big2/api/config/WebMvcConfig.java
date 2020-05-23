@@ -4,6 +4,7 @@ import javax.annotation.Resource;
 
 import java.util.List;
 
+import com.gmo.big2.api.store.ObjectMapperSingleton;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -26,7 +27,7 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
 
     @Override
     protected void configureMessageConverters(final List<HttpMessageConverter<?>> converters) {
-        converters.add(new MappingJackson2HttpMessageConverter(new ObjectMapper()));
+        converters.add(new MappingJackson2HttpMessageConverter(ObjectMapperSingleton.OBJECT_MAPPER));
         addDefaultHttpMessageConverters(converters);
     }
 
@@ -35,6 +36,8 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
         registry.addInterceptor(new JwtAuthenticationHandlerInterceptor(jwtUtils))
                 .addPathPatterns("/v1/**")
                 .excludePathPatterns("/v1/auth/login")
-                .excludePathPatterns("/v1/auth/register");
+                .excludePathPatterns("/v1/auth/register")
+                .excludePathPatterns("/v1/leaderboard")
+                .excludePathPatterns("/v1/fullHistory**");
     }
 }

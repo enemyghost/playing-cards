@@ -34,6 +34,8 @@ public class Big2GameLobby {
             throw new IllegalStateException("You cannot start a new game, it's already started");
         } else if (players.size() < 2) {
             throw new IllegalStateException("You cannot start a game with fewer than 2 players");
+        } else if (players.stream().allMatch(Player::isBot)) {
+            throw new IllegalStateException("You must have at least one human to start a game");
         }
         sealed.set(true);
         return Big2Game.newGame(gameId, players);
@@ -72,7 +74,7 @@ public class Big2GameLobby {
 
         private Builder() {
             gameId = UUID.randomUUID();
-            players = new ArrayList<>();
+            players = new ArrayList<>(4);
             sealed = new AtomicBoolean(false);
         }
 

@@ -6,12 +6,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gmo.playing.cards.Card;
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.Player;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 public class Big2GameView {
     public enum GameState {
@@ -53,12 +58,27 @@ public class Big2GameView {
         return handViews;
     }
 
+    @JsonIgnore
+    public HandView nextPlayerHand() {
+        return handViews.stream().filter(t->t.getPlayer().equals(getNextToPlay())).findFirst()
+                .orElseThrow(() -> new IllegalStateException("no next player hand available"));
+    }
+
     public Player getNextToPlay() {
         return nextToPlay;
     }
 
     public List<Big2Play> getLastPlays() {
         return lastPlays;
+    }
+
+    @JsonIgnore
+    public Optional<Big2Play> playToBeat() {
+        if (gameState == GameState.OPEN) {
+            return Optional.empty();
+        } else {
+            return getLastPlays().stream().filter(t -> !t.isPass()).findFirst();
+        }
     }
 
     public Player getGameViewOwner() {
@@ -71,6 +91,20 @@ public class Big2GameView {
 
     public Map<UUID, Integer> getScores() {
         return scores;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("gameViewOwner", gameViewOwner)
+                .add("gameState", gameState)
+                .add("handViews", handViews)
+                .add("nextToPlay", nextToPlay)
+                .add("lastPlays", lastPlays)
+                .add("gameId", gameId)
+                .add("nextGameId", nextGameId)
+                .add("scores", scores)
+                .toString();
     }
 
     public static final class Builder {

@@ -13,10 +13,12 @@ import com.google.common.base.MoreObjects;
 public class Player {
     private final UUID id;
     private final String name;
+    private final boolean isBot;
 
     private Player(final Builder builder) {
         id = builder.id;
         name = builder.name;
+        isBot = builder.isBot;
     }
 
     public static Builder newBuilder() {
@@ -31,17 +33,23 @@ public class Player {
         return name;
     }
 
+    public boolean isBot() {
+        return isBot;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Player player = (Player) o;
-        return Objects.equals(id, player.id);
+        final Player player = (Player) o;
+        return isBot == player.isBot &&
+                Objects.equals(id, player.id) &&
+                Objects.equals(name, player.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, name, isBot);
     }
 
     @Override
@@ -49,6 +57,7 @@ public class Player {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("name", name)
+                .add("isBot", isBot)
                 .toString();
     }
 
@@ -56,8 +65,10 @@ public class Player {
     public static final class Builder {
         private UUID id;
         private String name;
+        private boolean isBot;
 
         private Builder() {
+            isBot = false;
         }
 
         public Builder withId(UUID id) {
@@ -67,6 +78,16 @@ public class Player {
 
         public Builder withName(String name) {
             this.name = name;
+            return this;
+        }
+
+        public Builder isBot() {
+            this.isBot = true;
+            return this;
+        }
+
+        public Builder withBot(final boolean isBot) {
+            this.isBot = isBot;
             return this;
         }
 

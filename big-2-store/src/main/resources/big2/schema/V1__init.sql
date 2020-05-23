@@ -104,3 +104,6 @@ CREATE TABLE IF NOT EXISTS `game_player_group` (
     ON DELETE CASCADE
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB CHARACTER SET utf8mb4;
+
+INSERT IGNORE INTO player (player_uuid, email_address, display_name, password_hash)
+VALUES (unhex('50E946FD8C6E4D9B95502382039E4AD9'), 'notabot@bot.com', 'not_a_bot', unhex('ABCDEF123'));

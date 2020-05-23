@@ -25,9 +25,9 @@ public class Big2CliGame {
     public static void main(String[] args) {
         final List<Player> players = ImmutableList.of(
                 Player.newBuilder().withId(UUID.randomUUID()).withName("tyler").build(),
-                Player.newBuilder().withId(UUID.randomUUID()).withName("spenser").build(),
-                Player.newBuilder().withId(UUID.randomUUID()).withName("haolan").build(),
-                Player.newBuilder().withId(UUID.randomUUID()).withName("william").build()
+//                Player.newBuilder().withId(UUID.randomUUID()).withName("spenser").build(),
+                Player.newBuilder().withId(UUID.randomUUID()).withName("haolan").isBot().build()
+//                Player.newBuilder().withId(UUID.randomUUID()).withName("william").build()
         );
 
         final Big2Game game = Big2Game.newGame(UUID.randomUUID(), players);
@@ -61,7 +61,10 @@ public class Big2CliGame {
                             .stream()
                             .map(String::trim)
                             .filter(t -> !t.isEmpty())
-                            .map(t -> Big2DeckFactory.getByAbbrev(Character.toString(t.charAt(0)), Character.toString(t.charAt(1))))
+                            .map(t -> {
+                                final String cardName = t.startsWith("T") ? "10" : Character.toString(t.charAt(0));
+                                return Big2DeckFactory.getByAbbrev(cardName, Character.toString(t.charAt(1)));
+                            })
                             .collect(Collectors.toList());
                 game.play(game.nextToPlay(), play);
             } catch (final Big2Exception e) {

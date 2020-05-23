@@ -27,11 +27,14 @@ import com.gmo.big.two.Big2Exception.NotYourTurnException;
 import com.gmo.big.two.Big2Exception.PlayerDoesNotHaveCardsException;
 import com.gmo.big.two.Big2Exception.TooManyCardsException;
 import com.gmo.big.two.Big2GameView.GameState;
+import com.gmo.big.two.bot.Big2Bot;
+import com.gmo.big.two.bot.VerySimpleBot;
 import com.gmo.playing.cards.Card;
 import com.gmo.playing.cards.Deck;
 import com.gmo.playing.cards.Hand;
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.Player;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 /**
@@ -45,6 +48,7 @@ public class Big2Game {
 
     private final UUID id;
     private final List<Player> players;
+    private final Map<UUID, Big2Bot> bots;
     private final Map<UUID, Hand> playerHands;
     private final Deque<Big2Play> plays;
     private final Player dealer;
@@ -56,12 +60,17 @@ public class Big2Game {
     private Big2Game(final Builder builder) {
         id = builder.id;
         players = builder.players;
+        bots = ImmutableMap.copyOf(builder.bots);
         playerHands = builder.playerHands == null ? deal(players, Big2DeckFactory.getShuffledBig2Deck()) : builder.playerHands;
         plays = builder.plays;
         dealer = builder.dealer;
         gameState = builder.gameState;
         nextToPlay = builder.nextToPlay;
         nextGameId = builder.nextGameId;
+
+        if (nextToPlay().isBot()) {
+            playBot(nextToPlay());
+        }
     }
 
     public static Big2Game newGame(final UUID uuid, final List<Player> players) {
@@ -110,6 +119,10 @@ public class Big2Game {
 
     public Optional<UUID> getNextGameId() {
         return Optional.ofNullable(nextGameId);
+    }
+
+    public Map<UUID, Big2Bot> getBots() {
+        return bots;
     }
 
     public void setNextGameId(final UUID nextGameId) {
@@ -212,7 +225,26 @@ public class Big2Game {
             plays.push(Big2Play.pass(player));
         }
 
+        // Autoplay for bot if bot is next
+        final Player nextPlayer = nextToPlay();
+        if (!gameState.equals(GameState.COMPLETED) && nextPlayer.isBot()) {
+            playBot(nextPlayer);
+        }
+
         return gameViewForPlayer(player);
+    }
+
+    private void playBot(final Player nextPlayer) {
+        final Big2Play play = bots.get(nextPlayer.getId()).play(gameViewForPlayer(nextPlayer));
+        try {
+            if (canPlay(nextPlayer, play.getHand())) {
+                play(nextPlayer, play.getHand());
+            } else {
+                play(nextPlayer, Collections.emptyList());
+            }
+        } catch (final Big2Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @JsonIgnore
@@ -290,6 +322,7 @@ public class Big2Game {
         private UUID id;
         private UUID nextGameId;
         private List<Player> players;
+        private Map<UUID, Big2Bot> bots;
         private Map<UUID, Hand> playerHands;
         private Deque<Big2Play> plays;
         private Player dealer;
@@ -300,6 +333,7 @@ public class Big2Game {
             this.nextToPlay = new AtomicInteger(0);
             this.plays = new ArrayDeque<>();
             this.gameState = GameState.OPEN;
+            this.bots = new HashMap<>();
         }
 
         public Builder withId(UUID id) {
@@ -337,12 +371,23 @@ public class Big2Game {
             return this;
         }
 
+        public Builder withBots(Map<UUID, Big2Bot> bots) {
+            this.bots = new HashMap<>(bots);
+            return this;
+        }
+
         public Builder withNextToPlay(AtomicInteger nextToPlay) {
             this.nextToPlay = nextToPlay;
             return this;
         }
 
         public Big2Game build() {
+            for (final Player p : players) {
+                if (p.isBot() && !bots.containsKey(p)) {
+                    bots.put(p.getId(), new VerySimpleBot());
+                }
+            }
+
             return new Big2Game(this);
         }
     }

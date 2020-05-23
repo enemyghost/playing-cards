@@ -1,12 +1,19 @@
 package com.gmo.big2.api.controller;
 
-import javax.servlet.http.HttpServletRequest;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-
+import com.gmo.big.two.Big2Exception;
+import com.gmo.big.two.Big2Game;
+import com.gmo.big.two.Big2GameLobby;
+import com.gmo.big.two.Big2GameView;
+import com.gmo.big.two.Big2GameView.GameState;
+import com.gmo.big.two.bot.VerySimpleBot;
+import com.gmo.big2.api.servlet.ServletAuthUtils;
+import com.gmo.big2.api.store.GameStore;
+import com.gmo.big2.auth.entities.User;
+import com.gmo.big2.store.game.CompletedGameStore;
+import com.gmo.playing.cards.Card;
+import com.gmo.playing.cards.HandView;
+import com.gmo.playing.cards.LeaderboardEntry;
+import com.gmo.playing.cards.Player;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -18,21 +25,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gmo.big.two.Big2Exception;
-import com.gmo.big.two.Big2Game;
-import com.gmo.big.two.Big2GameLobby;
-import com.gmo.big.two.Big2GameView;
-import com.gmo.big.two.Big2GameView.GameState;
-import com.gmo.big2.api.servlet.ServletAuthUtils;
-import com.gmo.big2.api.store.GameStore;
-import com.gmo.big2.auth.entities.User;
-import com.gmo.big2.store.game.CompletedGameStore;
-import com.gmo.playing.cards.Card;
-import com.gmo.playing.cards.HandView;
-import com.gmo.playing.cards.LeaderboardEntry;
-import com.gmo.playing.cards.Player;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author tedelen
@@ -88,7 +88,7 @@ public class Big2GameController {
 
         final List<Player> players = big2Game.getPlayers();
         final Player winner = big2Game.getWinner().orElseThrow(() -> new RuntimeException("ain't no winner"));
-        if (!player.equals(winner)) {
+        if (!player.equals(winner) && !winner.isBot()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -164,12 +164,18 @@ public class Big2GameController {
 
     @PostMapping(value = "/games/{gameUuid}/players")
     public ResponseEntity<Big2GameView> joinGame(final HttpServletRequest request,
-                                                 @PathVariable final UUID gameUuid) {
+                                                 @PathVariable final UUID gameUuid,
+                                                 @RequestParam(required = false, defaultValue = "false") final boolean isBot) {
         final Optional<Big2GameLobby> gameLobby = gameStore.getGameLobby(gameUuid);
         if (!gameLobby.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        final Player player = getPlayer(request);
+        final Player player = isBot
+            ? Player.newBuilder().withId(VerySimpleBot.BOT_UUID).withName("not_a_bot").isBot().build()
+            : getPlayer(request);
+        if (isBot && gameLobby.get().getPlayers().stream().anyMatch(Player::isBot)) {
+            return ResponseEntity.badRequest().build();
+        }
         gameLobby.get().addPlayer(player);
         gameStore.updateGameLobby(gameLobby.get());
         return ResponseEntity.ok(gameLobbyToView(gameLobby.get(), player));

@@ -1,5 +1,6 @@
 package com.gmo.big.two.bot;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.gmo.big.two.Big2GameView;
 import com.gmo.big.two.Big2Play;
@@ -9,6 +10,7 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 
 @JsonTypeInfo(use = NAME, include = PROPERTY)
+@JsonSubTypes(value = { @JsonSubTypes.Type(VerySimpleBot.class) })
 public interface Big2Bot {
     /**
      * Provided the current {@link Big2GameView}, returns the next {@link Big2Play} the bot would like to make

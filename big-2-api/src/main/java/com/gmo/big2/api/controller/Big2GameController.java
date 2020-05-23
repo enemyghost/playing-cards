@@ -8,9 +8,11 @@ import com.gmo.big.two.Big2GameView.GameState;
 import com.gmo.big.two.bot.VerySimpleBot;
 import com.gmo.big2.api.servlet.ServletAuthUtils;
 import com.gmo.big2.api.store.GameStore;
+import com.gmo.big2.api.support.GameResultsCsvResponseWriter;
 import com.gmo.big2.auth.entities.User;
 import com.gmo.big2.store.game.CompletedGameStore;
 import com.gmo.playing.cards.Card;
+import com.gmo.playing.cards.GameResults;
 import com.gmo.playing.cards.HandView;
 import com.gmo.playing.cards.LeaderboardEntry;
 import com.gmo.playing.cards.Player;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -56,11 +59,6 @@ public class Big2GameController {
         return gameId;
     }
 
-    @GetMapping(value = "/leaderboard")
-    public ResponseEntity<List<LeaderboardEntry>> leaderboard(final HttpServletRequest request) {
-        return ResponseEntity.ok(completedGameStore.leaderboard());
-    }
-
     @PostMapping(value = "/games")
     public ResponseEntity<UUID> createGame(final HttpServletRequest request) {
         final Player player = getPlayer(request);
@@ -75,7 +73,7 @@ public class Big2GameController {
                                            @PathVariable final UUID gameUuid) {
         final Player player = getPlayer(request);
         final Optional<Big2Game> game = gameStore.getGame(gameUuid);
-        if (!game.isPresent()) {
+        if (game.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -132,7 +130,7 @@ public class Big2GameController {
     @PostMapping(value = "/games/{gameUuid}/status/START")
     public ResponseEntity<Big2GameView> startGame(final HttpServletRequest request,
                                                   @PathVariable final UUID gameUuid) {
-        if (!gameStore.getGameLobby(gameUuid).isPresent()) {
+        if (gameStore.getGameLobby(gameUuid).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         final Big2Game big2Game = gameStore.startGame(gameUuid);
@@ -145,7 +143,7 @@ public class Big2GameController {
                                              @PathVariable final UUID gameUuid,
                                              @RequestBody final List<Card> cardsToPlay) {
         final Optional<Big2Game> big2GameOpt = gameStore.getGame(gameUuid);
-        if (!big2GameOpt.isPresent()) {
+        if (big2GameOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         final Player player = getPlayer(request);
@@ -167,7 +165,7 @@ public class Big2GameController {
                                                  @PathVariable final UUID gameUuid,
                                                  @RequestParam(required = false, defaultValue = "false") final boolean isBot) {
         final Optional<Big2GameLobby> gameLobby = gameStore.getGameLobby(gameUuid);
-        if (!gameLobby.isPresent()) {
+        if (gameLobby.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         final Player player = isBot
@@ -179,6 +177,21 @@ public class Big2GameController {
         gameLobby.get().addPlayer(player);
         gameStore.updateGameLobby(gameLobby.get());
         return ResponseEntity.ok(gameLobbyToView(gameLobby.get(), player));
+    }
+
+    @GetMapping(value = "/leaderboard")
+    public ResponseEntity<List<LeaderboardEntry>> leaderboard(final HttpServletRequest request) {
+        return ResponseEntity.ok(completedGameStore.leaderboard());
+    }
+
+    @GetMapping(value = "/fullHistory", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<GameResults> fullHistory() {
+        return ResponseEntity.ok(completedGameStore.history());
+    }
+
+    @GetMapping(value = "/fullHistory.csv", produces = "text/csv")
+    public void fullHistoryCsv(final HttpServletResponse response) throws Exception {
+        GameResultsCsvResponseWriter.writeResponse(response.getWriter(), completedGameStore.history());
     }
 
     private Big2GameView gameLobbyToView(final Big2GameLobby gameLobby, final Player player) {

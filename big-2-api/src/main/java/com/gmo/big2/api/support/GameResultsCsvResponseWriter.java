@@ -3,6 +3,7 @@ package com.gmo.big2.api.support;
 import com.gmo.playing.cards.GameResult;
 import com.gmo.playing.cards.GameResults;
 import com.gmo.playing.cards.Player;
+import com.gmo.playing.cards.PlayerScore;
 import com.opencsv.CSVWriter;
 
 import java.io.IOException;
@@ -32,14 +33,13 @@ public final class GameResultsCsvResponseWriter {
         csvWriter.writeNext(COLUMN_HEADERS);
         for (final GameResult result : results.getResults()) {
             result.getPlayerScores()
-                    .entrySet()
                     .stream()
-                    .sorted(Comparator.<Entry<Player, Integer>>comparingInt(Entry::getValue).reversed())
-                    .forEachOrdered(entry ->
+                    .sorted(Comparator.comparingInt(PlayerScore::getScore).reversed())
+                    .forEachOrdered(playerScore ->
                             csvWriter.writeNext(new String[]{
                                     String.valueOf(result.getGameCompletedInstant().toEpochMilli()),
-                                    entry.getKey().getName(),
-                                    String.valueOf(entry.getValue())
+                                    playerScore.getPlayer().getName(),
+                                    String.valueOf(playerScore.getScore())
                             }));
         }
 

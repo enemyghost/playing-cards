@@ -6,8 +6,8 @@ import com.gmo.playing.cards.GameResult.Builder;
 import com.google.common.base.Preconditions;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -19,12 +19,12 @@ import java.util.UUID;
 public class GameResult {
     private final UUID gameId;
     private final Instant gameCompletedInstant;
-    private final Map<Player, Integer> playerScores;
+    private final List<PlayerScore> playerScores;
 
     private GameResult(final Builder builder) {
         gameId = builder.gameId;
         gameCompletedInstant = builder.gameCompletedInstant;
-        playerScores = Map.copyOf(builder.playerScores);
+        playerScores = List.copyOf(builder.playerScores);
     }
 
     public static Builder newBuilder() {
@@ -39,7 +39,7 @@ public class GameResult {
         return gameCompletedInstant;
     }
 
-    public Map<Player, Integer> getPlayerScores() {
+    public List<PlayerScore> getPlayerScores() {
         return playerScores;
     }
 
@@ -71,10 +71,10 @@ public class GameResult {
     public static final class Builder {
         private UUID gameId;
         private Instant gameCompletedInstant;
-        private Map<Player, Integer> playerScores;
+        private List<PlayerScore> playerScores;
 
         private Builder() {
-            playerScores = new HashMap<>();
+            playerScores = new ArrayList<>();
         }
 
         public Builder withGameId(final UUID val) {
@@ -88,19 +88,14 @@ public class GameResult {
         }
 
         public Builder addPlayerScore(final Player player, final int score) {
-            playerScores.put(player, score);
-            return this;
-        }
-
-        public Builder withPlayerScores(final Map<Player, Integer> val) {
-            playerScores = new HashMap<>(Objects.requireNonNull(val, "Null player scores map"));
+            playerScores.add(new PlayerScore(player, score));
             return this;
         }
 
         public GameResult build() {
             Objects.requireNonNull(gameId, "Null game ID");
             Objects.requireNonNull(gameCompletedInstant, "Null completed instant");
-            Preconditions.checkArgument(playerScores.size() >= 2);
+            Preconditions.checkArgument(playerScores.size() >= 2 && playerScores.size() <= 4);
             return new GameResult(this);
         }
     }
